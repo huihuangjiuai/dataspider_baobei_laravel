@@ -30,3 +30,4 @@ composer.lock
 /.idea/
 /vendor/
 /config/
+swsft-solidworks-command.bat
