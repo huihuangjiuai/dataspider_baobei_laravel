@@ -288,7 +288,7 @@ class SwsftSolidworksService
                 /*
                  * 进行数据比对
                  */
-                if (!$this->compareData($typeValue, $yesterdayData, $todayData)) {
+                if ($this->compareData($typeValue, $yesterdayData, $todayData)) {
                     $compareResult[$companyValue['salesName']][] = [
                         'type' => $typeValue,
                         'companyName' => $companyValue['clinetName'],
