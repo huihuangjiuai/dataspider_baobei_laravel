@@ -408,12 +408,6 @@ class SwsftSolidworksService
     public function sendEmail($companyList = [])
     {
         try {
-            $mail = new PHPMailer(true);
-            $mail->CharSet = 'UTF-8';
-
-            $todayDate = date('Y-m-d');
-            $subject = $todayDate . ' Solidworks登记冲突检查';
-
             if (empty($companyList)) {
                 $bodyHtml = "报备信息无变动数据";
             } else {
@@ -548,19 +542,18 @@ EOF;
                         </table>
 EOF;
                     }
+                    $mail = new PHPMailer(true);
+                    $mail->CharSet = 'UTF-8';
+
+                    $todayDate = date('Y-m-d');
+                    $subject = $todayDate . ' Solidworks登记冲突检查';
 
                     #发送邮箱
                     $fromEmailName = env("MAIL_USERNAME");
                     $fromEmailPwd = env("MAIL_PASSWORD");
                     $formEmailHost = env("MAIL_HOST");
                     #接受邮箱列表
-                    $toEmailList = [
-//                        '81405982@qq.com',
-                        $value['emailStr']
-                    ];
-                    foreach ($toEmailList as $key => $email) {
-                        $mail->addAddress($email, $email);                      // Add a recipient
-                    }
+                    $mail->addAddress($vvalue['emailStr'], $key);                      // Add a recipient
 
                     //Server settings
                     $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      // Enable verbose debug output
