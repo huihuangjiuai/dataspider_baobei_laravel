@@ -1,8 +1,3 @@
-.env.example
-
-/vendor/
-/config/
-composer.lock
 node_modules/
 npm-debug.log
 yarn-error.log
@@ -21,7 +16,17 @@ public_html/hot
 
 storage/*.key
 .env
+.env.example
+
 Homestead.yaml
 Homestead.json
 /.vagrant
 .phpunit.result.cache
+
+
+composer.lock
+
+
+
+/vendor/
+/config/
