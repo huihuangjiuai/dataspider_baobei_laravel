@@ -135,6 +135,7 @@ class SwsftSolidworksService
             $sqlCompany['orgEpdmStatus'] = $row['orgEpdmStatus'];                      //昨天sw状态
             $sqlCompany['orgEpdmNumber'] = $row['orgEpdmNumber'];                      //昨天sw冲突数量
             $sqlCompany['salesName'] = $row['salesName'];                              //销售人员
+            $sqlCompany['emailStr'] = $row['emailStr'];                                //销售人员email
 
             $sqlCompanyList[] = $sqlCompany;
         }
@@ -267,17 +268,17 @@ class SwsftSolidworksService
                  * 执行sql更新操作
                  */
                 if ($stmt = sqlsrv_prepare($sqlServerConn, $updateSql)) {
-                    echo $companyValue['clinetName'] . ' type : ' . $typeValue . " : Statement prepared.\n";
+                    echo $companyValue['clinetName'] . ' type : ' . $typeValue . " : Statement prepared.\r\n";
                 } else {
-                    echo $companyValue['clinetName'] . ' type : ' . $typeValue . " : Statement could not be prepared.\n";;
+                    echo $companyValue['clinetName'] . ' type : ' . $typeValue . " : Statement could not be prepared.\r\n";;
                     die(print_r(sqlsrv_errors(), true));
                 }
 
                 /* Execute the statement. */
                 if ($executeResult = sqlsrv_execute($stmt)) {
-                    echo $companyValue['clinetName'] . ' type : ' . $typeValue . " : Statement executed.\n";
+                    echo $companyValue['clinetName'] . ' type : ' . $typeValue . " : Statement executed.\r\n";
                 } else {
-                    echo $companyValue['clinetName'] . ' type : ' . $typeValue . " : Statement could not be executed.\n";
+                    echo $companyValue['clinetName'] . ' type : ' . $typeValue . " : Statement could not be executed.\r\n";
                     die(print_r(sqlsrv_errors(), true));
                 }
 
@@ -294,20 +295,19 @@ class SwsftSolidworksService
                         'updatedAt' => $lastTime,
                         'today' => $todayData,
                         'yesterday' => $yesterdayData,
+                        'emailStr' => $companyValue['emailStr']
                     ];
                 }
-                return [
-                    'code' => 0,
-                    'message' => 'Success',
-                    'data' => $compareResult
-                ];
             }
             #删除之前配置的type选项
             unset($postFormData[$typeKey]);
-
         }
         sqlsrv_close($sqlServerConn);
-
+        return [
+            'code' => 0,
+            'message' => 'Success',
+            'data' => $compareResult
+        ];
     }
 
     /**
@@ -322,7 +322,7 @@ class SwsftSolidworksService
         switch ($type) {
             case 1:
                 $todayStatus = json_decode($today['swStatus'], 1);
-                $todayNumber = json_decode($today['swNumber']);
+                $todayNumber = json_decode($today['swNumber'],1);
                 $yesterdayOrgStatus = json_decode($yesterday['orgSwStatus'], 1);
                 $yesterdayOrgNumber = json_decode($yesterday['orgSwNumber'], 1);
                 break;
@@ -417,8 +417,8 @@ class SwsftSolidworksService
             if (empty($companyList)) {
                 $bodyHtml = "报备信息无变动数据";
             } else {
-                $bodyHtml = "";
                 foreach ($companyList as $key => $value) {
+                    $bodyHtml = "";
                     $bodyHtml .=
                         <<<EOF
 <style type="text/css">
@@ -485,7 +485,10 @@ class SwsftSolidworksService
 </style>
                     <p>您好：{$key}，以下为报备信息变动数据</p>
 EOF;
+                    $counter = 0;
                     foreach ($value as $vkey => $vvalue) {
+                        $counter = $counter + 1;
+
                         #sw
                         if ($vvalue['type'] == 1) {
                             $titleType = 'SW';
@@ -507,7 +510,7 @@ EOF;
                     <table class="DefaultTable" width="100%" cellpadding="2" border="2">
                             <thead>
                                 <tr class="firstRow">
-                                    <td colspan="2">1、{$vvalue['companyName']}（数据更新时间:{$vvalue['updatedAt']}）</td></tr>
+                                    <td colspan="2">{$counter}、{$vvalue['companyName']}（数据更新时间:{$vvalue['updatedAt']}）</td></tr>
                             </thead>
                             <tbody>
                                 <tr>
@@ -545,49 +548,48 @@ EOF;
                         </table>
 EOF;
                     }
+
+                    #发送邮箱
+                    $fromEmailName = env("MAIL_USERNAME");
+                    $fromEmailPwd = env("MAIL_PASSWORD");
+                    $formEmailHost = env("MAIL_HOST");
+                    #接受邮箱列表
+                    $toEmailList = [
+//                        '81405982@qq.com',
+                        $value['emailStr']
+                    ];
+                    foreach ($toEmailList as $key => $email) {
+                        $mail->addAddress($email, $email);                      // Add a recipient
+                    }
+
+                    //Server settings
+                    $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      // Enable verbose debug output
+                    $mail->Mailer = env("MAIL_MAILER");                    // Send using SMTP
+                    $mail->Host = $formEmailHost;                               // Set the SMTP server to send through
+                    $mail->SMTPAuth = true;                                     // Enable SMTP authentication
+                    $mail->Username = $fromEmailName;                           // SMTP username
+                    $mail->Password = $fromEmailPwd;                            // SMTP password
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+                    $mail->Port = env("MAIL_PORT");                         // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+                    //Recipients
+                    $mail->setFrom($fromEmailName, "Solidworks登记冲突检查");
+
+                    // Content
+                    $mail->isHTML(true);                                // Set email format to HTML
+                    $mail->Subject = $subject;
+                    $mail->Body = $bodyHtml;
+
+                    if (!$mail->send()) {
+                        file_put_contents($this->logDirectory . '/emailSendError.log', date("Y-m-d H:i:s") . '   ' . $mail->ErrorInfo . "\r\n", FILE_APPEND);
+                    }
+                    sleep(20);
                 }
             }
 
-            #发送邮箱
-            $fromEmailName = env("MAIL_USERNAME");
-            $fromEmailPwd = env("MAIL_PASSWORD");
-            $formEmailHost = env("MAIL_HOST");
-            #接受邮箱列表
-            $toEmailList = [
-                '81405982@qq.com',
-            ];
-            $emailString = '';
-            foreach ($toEmailList as $key => $email) {
-                $mail->addAddress($email, $email);                      // Add a recipient
-                $emailString .= ';' . $email;
-            }
 
-            //Server settings
-            $mail->SMTPDebug = SMTP::DEBUG_CLIENT;                      // Enable verbose debug output
-            $mail->Mailer = env("MAIL_MAILER");                    // Send using SMTP
-            $mail->Host = $formEmailHost;                               // Set the SMTP server to send through
-            $mail->SMTPAuth = true;                                     // Enable SMTP authentication
-            $mail->Username = $fromEmailName;                           // SMTP username
-            $mail->Password = $fromEmailPwd;                            // SMTP password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
-            $mail->Port = 465;                                          // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
-
-            //Recipients
-            $mail->setFrom($fromEmailName, "Solidworks登记冲突检查");
-
-            // Content
-            $mail->isHTML(true);                                // Set email format to HTML
-            $mail->Subject = $subject;
-            $mail->Body = $bodyHtml;
-
-            if ($mail->send()) {
-                file_put_contents(__PATH__ . '/logs/email_send_success.log', date('Y-m-d H:i:s') . "       {$companyString} email:{$emailString}" . "\r\n", FILE_APPEND);
-            } else {
-                file_put_contents(__PATH__ . '/logs/email_send_error.log', date('Y-m-d H:i:s') . "     date:{$todayDate} message:{$mail->ErrorInfo}" . "\r\n", FILE_APPEND);
-            }
-            echo 'Message has been sent';
         } catch (Exception $e) {
-            echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            file_put_contents($this->logDirectory . '/emailSendError.log', date("Y-m-d H:i:s") . '   ' . $e->getLine().' '.$e->getMessage() . "\r\n", FILE_APPEND);
         }
     }
 }
