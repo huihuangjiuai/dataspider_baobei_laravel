@@ -27,6 +27,6 @@ Homestead.json
 composer.lock
 
 
-
+/.idea/
 /vendor/
 /config/
