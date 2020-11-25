@@ -554,6 +554,12 @@ EOF;
                     $formEmailHost = env("MAIL_HOST");
                     #接受邮箱列表
                     $mail->addAddress($vvalue['emailStr'], $key);                      // Add a recipient
+                    /*
+                     * 如果不是刘小娟，需要抄送给刘小娟一份
+                     */
+                    if($vvalue['emailStr'] != 'lxj@sensnow.com'){
+                        $mail->addCC('lxj@sensnow.com', $key);
+                    }
 
                     //Server settings
                     $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      // Enable verbose debug output
