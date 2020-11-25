@@ -557,7 +557,7 @@ EOF;
                  * 如果不是刘小娟，需要抄送给刘小娟一份
                  */
                 if ($vvalue['emailStr'] != 'lxj@sensnow.com') {
-                    $mail->addCC('lxj@sensnow.com', $key);
+                    $mail->addCC('lxj@sensnow.com', '刘小娟');
                 }
 
                 //Server settings
