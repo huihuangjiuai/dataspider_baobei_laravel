@@ -322,7 +322,7 @@ class SwsftSolidworksService
         switch ($type) {
             case 1:
                 $todayStatus = json_decode($today['swStatus'], 1);
-                $todayNumber = json_decode($today['swNumber'],1);
+                $todayNumber = json_decode($today['swNumber'], 1);
                 $yesterdayOrgStatus = json_decode($yesterday['orgSwStatus'], 1);
                 $yesterdayOrgNumber = json_decode($yesterday['orgSwNumber'], 1);
                 break;
@@ -408,13 +408,10 @@ class SwsftSolidworksService
     public function sendEmail($companyList = [])
     {
         try {
-            if (empty($companyList)) {
-                $bodyHtml = "报备信息无变动数据";
-            } else {
-                foreach ($companyList as $key => $value) {
-                    $bodyHtml = "";
-                    $bodyHtml .=
-                        <<<EOF
+            foreach ($companyList as $key => $value) {
+                $bodyHtml = "";
+                $bodyHtml .=
+                    <<<EOF
 <style type="text/css">
 	.DefaultTable {
     border-right: #d3d3d3 2px groove;
@@ -479,28 +476,28 @@ class SwsftSolidworksService
 </style>
                     <p>您好：{$key}，以下为报备信息变动数据</p>
 EOF;
-                    $counter = 0;
-                    foreach ($value as $vkey => $vvalue) {
-                        $counter = $counter + 1;
+                $counter = 0;
+                foreach ($value as $vkey => $vvalue) {
+                    $counter = $counter + 1;
 
-                        #sw
-                        if ($vvalue['type'] == 1) {
-                            $titleType = 'SW';
-                            $todayStatus = !empty($vvalue['today']['swStatus']) ? json_decode($vvalue['today']['swStatus'], 1) : '';
-                            $todayNumber = !empty($vvalue['today']['swNumber']) ? json_decode($vvalue['today']['swNumber'], 1) : '';
-                            $yesterdayOrgStatus = !empty($vvalue['yesterday']['orgSwStatus']) ? json_decode($vvalue['yesterday']['orgSwStatus'], 1) : '';
-                            $yesterdayOrgNumber = !empty($vvalue['yesterday']['orgSwNumber']) ? json_decode($vvalue['yesterday']['orgSwNumber'], 1) : '';
-                            #epdm
-                        } elseif ($vvalue['type'] == 5) {
-                            $titleType = 'EPDM';
-                            $todayStatus = !empty($vvalue['today']['epdmStatus']) ? json_decode($vvalue['today']['epdmStatus'], 1) : '';
-                            $todayNumber = !empty($vvalue['today']['epdmNumber']) ? json_decode($vvalue['today']['epdmNumber'], 1) : '';
-                            $yesterdayOrgStatus = !empty($vvalue['today']['orgEpdmStatus']) ? json_decode($vvalue['yesterday']['orgEpdmStatus'], 1) : '';
-                            $yesterdayOrgNumber = !empty($vvalue['today']['orgEpdmNumber']) ? json_decode($vvalue['yesterday']['orgEpdmNumber'], 1) : '';
-                        }
+                    #sw
+                    if ($vvalue['type'] == 1) {
+                        $titleType = 'SW';
+                        $todayStatus = !empty($vvalue['today']['swStatus']) ? json_decode($vvalue['today']['swStatus'], 1) : '';
+                        $todayNumber = !empty($vvalue['today']['swNumber']) ? json_decode($vvalue['today']['swNumber'], 1) : '';
+                        $yesterdayOrgStatus = !empty($vvalue['yesterday']['orgSwStatus']) ? json_decode($vvalue['yesterday']['orgSwStatus'], 1) : '';
+                        $yesterdayOrgNumber = !empty($vvalue['yesterday']['orgSwNumber']) ? json_decode($vvalue['yesterday']['orgSwNumber'], 1) : '';
+                        #epdm
+                    } elseif ($vvalue['type'] == 5) {
+                        $titleType = 'EPDM';
+                        $todayStatus = !empty($vvalue['today']['epdmStatus']) ? json_decode($vvalue['today']['epdmStatus'], 1) : '';
+                        $todayNumber = !empty($vvalue['today']['epdmNumber']) ? json_decode($vvalue['today']['epdmNumber'], 1) : '';
+                        $yesterdayOrgStatus = !empty($vvalue['today']['orgEpdmStatus']) ? json_decode($vvalue['yesterday']['orgEpdmStatus'], 1) : '';
+                        $yesterdayOrgNumber = !empty($vvalue['today']['orgEpdmNumber']) ? json_decode($vvalue['yesterday']['orgEpdmNumber'], 1) : '';
+                    }
 
-                        $bodyHtml .=
-                            <<<EOF
+                    $bodyHtml .=
+                        <<<EOF
                     <table class="DefaultTable" width="100%" cellpadding="2" border="2">
                             <thead>
                                 <tr class="firstRow">
@@ -520,20 +517,20 @@ EOF;
                                     <th align="left" scope="col" style="white-space:nowrap; font-size: 14px; width: 40%;">起始冲突数量/结束冲突数量</th>
                                 </tr>
 EOF;
-                        foreach ($todayStatus as $todayStatusKey => $todayStatusValue) {
-                            foreach ($todayStatusValue as $todayStatusValueKey => $todayStatusValueValue) {
-                                $bodyHtml .=
-                                    <<<EOF
+                    foreach ($todayStatus as $todayStatusKey => $todayStatusValue) {
+                        foreach ($todayStatusValue as $todayStatusValueKey => $todayStatusValueValue) {
+                            $bodyHtml .=
+                                <<<EOF
                     <tr>
                         <td style="white-space:nowrap;">/{$todayStatusValueKey}</td>
                         <td style="white-space:nowrap;">/{$todayStatusValueValue}</td>
                         <td style="white-space:nowrap;">/{$todayNumber[$todayStatusKey][$todayStatusValueKey]}</td>
                     </tr>
 EOF;
-                            }
                         }
-                        $bodyHtml .=
-                            <<<EOF
+                    }
+                    $bodyHtml .=
+                        <<<EOF
                     </tbody></table>
                                         </div>
                                     </td>
@@ -541,54 +538,51 @@ EOF;
                             </tbody>
                         </table>
 EOF;
-                    }
-                    $mail = new PHPMailer(true);
-                    $mail->CharSet = 'UTF-8';
-
-                    $todayDate = date('Y-m-d');
-                    $subject = $todayDate . ' Solidworks登记冲突检查';
-
-                    #发送邮箱
-                    $fromEmailName = env("MAIL_USERNAME");
-                    $fromEmailPwd = env("MAIL_PASSWORD");
-                    $formEmailHost = env("MAIL_HOST");
-                    #接受邮箱列表
-                    $mail->addAddress($vvalue['emailStr'], $key);                      // Add a recipient
-                    /*
-                     * 如果不是刘小娟，需要抄送给刘小娟一份
-                     */
-                    if($vvalue['emailStr'] != 'lxj@sensnow.com'){
-                        $mail->addCC('lxj@sensnow.com', $key);
-                    }
-
-                    //Server settings
-                    $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      // Enable verbose debug output
-                    $mail->Mailer = env("MAIL_MAILER");                    // Send using SMTP
-                    $mail->Host = $formEmailHost;                               // Set the SMTP server to send through
-                    $mail->SMTPAuth = true;                                     // Enable SMTP authentication
-                    $mail->Username = $fromEmailName;                           // SMTP username
-                    $mail->Password = $fromEmailPwd;                            // SMTP password
-                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
-                    $mail->Port = env("MAIL_PORT");                         // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
-
-                    //Recipients
-                    $mail->setFrom($fromEmailName, "Solidworks登记冲突检查");
-
-                    // Content
-                    $mail->isHTML(true);                                // Set email format to HTML
-                    $mail->Subject = $subject;
-                    $mail->Body = $bodyHtml;
-
-                    if (!$mail->send()) {
-                        file_put_contents($this->logDirectory . '/emailSendError.log', date("Y-m-d H:i:s") . '   ' . $mail->ErrorInfo . "\r\n", FILE_APPEND);
-                    }
-                    sleep(20);
                 }
+                $mail = new PHPMailer(true);
+                $mail->CharSet = 'UTF-8';
+
+                $todayDate = date('Y-m-d');
+                $subject = $todayDate . ' Solidworks登记冲突检查';
+
+                #发送邮箱
+                $fromEmailName = env("MAIL_USERNAME");
+                $fromEmailPwd = env("MAIL_PASSWORD");
+                $formEmailHost = env("MAIL_HOST");
+                #接受邮箱列表
+                $mail->addAddress($vvalue['emailStr'], $key);                      // Add a recipient
+                /*
+                 * 如果不是刘小娟，需要抄送给刘小娟一份
+                 */
+                if ($vvalue['emailStr'] != 'lxj@sensnow.com') {
+                    $mail->addCC('lxj@sensnow.com', $key);
+                }
+
+                //Server settings
+                $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      // Enable verbose debug output
+                $mail->Mailer = env("MAIL_MAILER");                    // Send using SMTP
+                $mail->Host = $formEmailHost;                               // Set the SMTP server to send through
+                $mail->SMTPAuth = true;                                     // Enable SMTP authentication
+                $mail->Username = $fromEmailName;                           // SMTP username
+                $mail->Password = $fromEmailPwd;                            // SMTP password
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+                $mail->Port = env("MAIL_PORT");                         // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+                //Recipients
+                $mail->setFrom($fromEmailName, "Solidworks登记冲突检查");
+
+                // Content
+                $mail->isHTML(true);                                // Set email format to HTML
+                $mail->Subject = $subject;
+                $mail->Body = $bodyHtml;
+
+                if (!$mail->send()) {
+                    file_put_contents($this->logDirectory . '/emailSendError.log', date("Y-m-d H:i:s") . '   ' . $mail->ErrorInfo . "\r\n", FILE_APPEND);
+                }
+                sleep(20);
             }
-
-
         } catch (Exception $e) {
-            file_put_contents($this->logDirectory . '/emailSendError.log', date("Y-m-d H:i:s") . '   ' . $e->getLine().' '.$e->getMessage() . "\r\n", FILE_APPEND);
+            file_put_contents($this->logDirectory . '/emailSendError.log', date("Y-m-d H:i:s") . '   ' . $e->getLine() . ' ' . $e->getMessage() . "\r\n", FILE_APPEND);
         }
     }
 }

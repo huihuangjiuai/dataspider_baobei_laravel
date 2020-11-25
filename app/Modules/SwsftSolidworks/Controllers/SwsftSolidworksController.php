@@ -13,35 +13,40 @@ class SwsftSolidworksController
      */
     public function getCheck4ConflictData(){
         $swsftSolidworksService = new SwsftSolidworksService();
-        $loginFormData = $swsftSolidworksService->getLoginFormData();
-        if($loginFormData['code'] != 0){
-            return $loginFormData;
+        $loginFormDataResult = $swsftSolidworksService->getLoginFormData();
+        if($loginFormDataResult['code'] != 0){
+            return $loginFormDataResult;
         }
-        $loginFormData = $loginFormData['data'];
+        $loginFormData = $loginFormDataResult['data'];
+        unset($loginFormDataResult);
 
-        $cookie = $swsftSolidworksService->getLoginCookies($loginFormData);
-        if($cookie['code'] != 0){
-            return $cookie;
+        $cookieResult = $swsftSolidworksService->getLoginCookies($loginFormData);
+        if($cookieResult['code'] != 0){
+            return $cookieResult;
         }
-        $cookie = $cookie['data'];
+        $cookie = $cookieResult['data'];
+        unset($cookieResult);
 
-        $companyData = $swsftSolidworksService->getCompanyDataForSqlServer();
-        if($companyData['code'] != 0){
-            return $companyData;
+        $companyDataResult = $swsftSolidworksService->getCompanyDataForSqlServer();
+        if($companyDataResult['code'] != 0){
+            return $companyDataResult;
         }
-        $companyData = $companyData['data'];
+        $companyData = $companyDataResult['data'];
+        unset($companyDataResult);
 
-        $check4ConflictFormData = $swsftSolidworksService->getCheck4ConflictFormData($cookie);
-        if($check4ConflictFormData['code'] != 0){
-            return $check4ConflictFormData;
+        $check4ConflictFormDataResult = $swsftSolidworksService->getCheck4ConflictFormData($cookie);
+        if($check4ConflictFormDataResult['code'] != 0){
+            return $check4ConflictFormDataResult;
         }
-        $check4ConflictFormData = $check4ConflictFormData['data'];
+        $check4ConflictFormData = $check4ConflictFormDataResult['data'];
+        unset($check4ConflictFormDataResult);
 
-        $check4ConflictData = $swsftSolidworksService->getCheck4ConflictData($cookie,$companyData,$check4ConflictFormData);
-        if($check4ConflictData['code'] != 0){
-            return $check4ConflictData;
+        $check4ConflictDataResult = $swsftSolidworksService->getCheck4ConflictData($cookie,$companyData,$check4ConflictFormData);
+        if($check4ConflictDataResult['code'] != 0){
+            return $check4ConflictDataResult;
         }
-        $check4ConflictData = $check4ConflictData['data'];
+        $check4ConflictData = $check4ConflictDataResult['data'];
+        unset($check4ConflictDataResult);
 
         $swsftSolidworksService->sendEmail($check4ConflictData);
 

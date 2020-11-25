@@ -38,7 +38,7 @@ class SwsftSolidworksCommand extends Command
      */
     public function handle()
     {
-        ini_set('memory_limit','2048M');
+        ini_set('memory_limit','3072M');
         $swsftSolidworksController = new SwsftSolidworksController();
         $result = $swsftSolidworksController->getCheck4ConflictData();
         if($result['code'] != 0){
