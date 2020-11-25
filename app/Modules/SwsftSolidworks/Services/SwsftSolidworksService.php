@@ -303,6 +303,8 @@ class SwsftSolidworksService
             unset($postFormData[$typeKey]);
         }
         sqlsrv_close($sqlServerConn);
+        file_put_contents($this->logDirectory . '/swsft-solidworks-compare-data.log', date("Y-m-d H:i:s") . '   ' .var_export($compareResult,true) . "\r\n", FILE_APPEND);
+
         return [
             'code' => 0,
             'message' => 'Success',
