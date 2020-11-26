@@ -20,8 +20,6 @@ class SwsftSolidworksService
 {
     const SWSFT_SOLIDWORKS_LOGIN_URL = "https://swsft.solidworks.com.cn/SignIn.aspx";                                       //登录页面地址
     const SWSFT_SOLIDWORKS_CHECK4CONFLICT_URL = "https://swsft.solidworks.com.cn/Saleslead/Check4Conflict.aspx";            //登记冲突检查地址
-    const SWSFT_SOLIDWORKS_LOGIN_USERNAME = "dsp@sensnow.com";
-    const SWSFT_SOLIDWORKS_LOGIN_PASSWORD = "20shoupeng13";
 
     public $cookieFile;
     public $logDirectory;
@@ -58,8 +56,8 @@ class SwsftSolidworksService
      */
     public function getLoginCookies($loginFormData)
     {
-        $loginFormData['ctl00$cphDefault$tbSignInName'] = self::SWSFT_SOLIDWORKS_LOGIN_USERNAME;
-        $loginFormData['ctl00$cphDefault$tbPassword'] = self::SWSFT_SOLIDWORKS_LOGIN_PASSWORD;
+        $loginFormData['ctl00$cphDefault$tbSignInName'] = env("SWSFT_SOLIDWORKS_LOGIN_USERNAME");
+        $loginFormData['ctl00$cphDefault$tbPassword'] = env("SWSFT_SOLIDWORKS_LOGIN_PASSWORD");
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, self::SWSFT_SOLIDWORKS_LOGIN_URL);
